@@ -11,5 +11,6 @@ Pull Azure Devops tasks into Microsoft ToDo app
 
 ## WIP
 
-- AzDevops integration
-- Work item task => Todo item sync
+- :white_check_mark: Microsoft Graph Integration - Todo
+- :white_large_square: AzDevops integration
+- :white_large_square: Work item task => Todo item sync

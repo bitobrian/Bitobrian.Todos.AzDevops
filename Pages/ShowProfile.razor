@@ -9,6 +9,31 @@
 
 <p>This component demonstrates fetching data from a service.</p>
 
+<button @onclick="AddNewExampleTask">Load List of TodoLists</button>
+
+<input @bind-value="listName"/>
+@listName
+<button @onclick="AddList">Add List</button>
+
+<p>Todo List Count: @listCount</p>
+
+@if (listCount > 0)
+{
+   @if (listCount > 1)
+      {
+          <p>Lists</p>
+      }
+      else
+      {
+          <p>List</p>
+      }
+   }
+
+@foreach (var list in listOfLists)
+{
+    <p>@list.DisplayName</p>
+}
+
 @if (user == null)
 {
     <p><em>Loading...</em></p>
@@ -21,15 +46,27 @@ else
             <th>Value</th>
         </tr>
         <tr>
+            <td>ID</td>
+            <td>@user.Id</td>
+        </tr>
+        <tr>
             <td>Name</td>
             <td>@user.DisplayName</td>
+        </tr>
+        <tr>
+            <td>GivenName</td>
+            <td>@user.GivenName</td>
         </tr>
     </table>
 }
 
 @code {
     User? user;
+    int listCount = 0;
+    List<TodoTaskList> listOfLists = new List<TodoTaskList>();
 
+    string listName = "";
+    
     protected override async Task OnInitializedAsync()
     {
         try
@@ -40,5 +77,43 @@ else
         {
             ConsentHandler.HandleException(ex);
         }
+    }
+
+    async Task AddNewExampleTask()
+    {
+        var todoTask = new TodoTask
+        {
+            Title = "A new task",
+            LinkedResources = new TodoTaskLinkedResourcesCollectionPage()
+            {
+                new LinkedResource
+                {
+                    WebUrl = "http://microsoft.com",
+                    ApplicationName = "Microsoft",
+                    DisplayName = "Microsoft"
+                }
+            }
+        };
+
+        //await GraphServiceClient.Me.Todo.Lists["{todoTaskList-id}"].Tasks
+         //   .Request()
+        //    .AddAsync(todoTask);
+
+        var taco = await GraphServiceClient.Me.Todo.Lists.Request().GetAsync();
+
+        listCount = taco.Count;
+
+        foreach (var list in taco)
+        {
+            if (list != null)
+            {
+                listOfLists.Add(list);
+            }
+        }
+    }
+
+    async Task AddList()
+    {
+        await GraphServiceClient.Me.Todo.Lists.Request().AddAsync(new TodoTaskList() {DisplayName = listName});
     }
 }

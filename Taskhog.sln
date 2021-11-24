@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30114.105
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bitobrian.Todos.AzDevops", "Bitobrian.Todos.AzDevops.csproj", "{C2B2CC6B-79F1-48F7-A067-524FDBF10E8D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Taskhog", "src/Taskhog.csproj", "{C2B2CC6B-79F1-48F7-A067-524FDBF10E8D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

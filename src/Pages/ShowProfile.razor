@@ -5,64 +5,60 @@
 @inject Microsoft.Graph.GraphServiceClient GraphServiceClient
 @inject MicrosoftIdentityConsentAndConditionalAccessHandler ConsentHandler
 
-<h1>Me</h1>
+<h1>Microsoft Graph Api</h1>
 
-<p>This component demonstrates fetching data from a service.</p>
+<p>This component shows integration with Microsoft Graph Api.</p>
 
-<button @onclick="LoadTasks">Load List of TodoLists</button>
-<h3>Load nodes on demand</h3>
-<RadzenTree Change=@OnChange Data=@listOfLists Expand=@OnExpand Style="width: 100%; height: 300px">
-    <RadzenTreeLevel TextProperty="DisplayName"/>
-</RadzenTree>
-
-<input @bind-value="listName"/>
-@listName
-<button @onclick="AddList">Add List</button>
-
-<p>Todo List Count: @listCount</p>
-
-@if (listCount > 0)
-{
-   @if (listCount > 1)
-      {
-          <p>Lists</p>
-      }
-      else
-      {
-          <p>List</p>
-      }
-   }
-
-@foreach (var list in listOfLists)
-{
-    <p>@list.DisplayName</p>
-}
-
-@if (user == null)
-{
-    <p><em>Loading...</em></p>
-}
-else
-{
-    <table class="table table-striped table-condensed" style="font-family: monospace">
-        <tr>
-            <th>Property</th>
-            <th>Value</th>
-        </tr>
-        <tr>
-            <td>ID</td>
-            <td>@user.Id</td>
-        </tr>
-        <tr>
-            <td>Name</td>
-            <td>@user.DisplayName</td>
-        </tr>
-        <tr>
-            <td>GivenName</td>
-            <td>@user.GivenName</td>
-        </tr>
-    </table>
-}
+<RadzenTabs @bind-SelectedIndex=@selectedIndex Change=@OnTabsChange>
+    <Tabs>
+        <RadzenTabsItem Text="User Profile">
+            <div>
+                <h3>User Profile Info</h3>
+                @if (user == null)
+                {
+                    <p><em>Loading...</em></p>
+                }
+                else
+                {
+                    <table class="table table-striped table-condensed" style="font-family: monospace">
+                        <tr>
+                            <th>Property</th>
+                            <th>Value</th>
+                        </tr>
+                        <tr>
+                            <td>ID</td>
+                            <td>@user.Id</td>
+                        </tr>
+                        <tr>
+                            <td>Name</td>
+                            <td>@user.DisplayName</td>
+                        </tr>
+                        <tr>
+                            <td>GivenName</td>
+                            <td>@user.GivenName</td>
+                        </tr>
+                    </table>
+                }
+            </div>
+        </RadzenTabsItem>
+        <RadzenTabsItem Text="Task Lists">
+            <div>
+                <h3>Load nodes on demand</h3>
+                <button @onclick="LoadTasks">Load List of TodoLists</button>
+                <RadzenTree Change=@OnTreeChange Data=@listOfLists Expand=@OnExpand Style="width: 100%; height: 300px">
+                    <RadzenTreeLevel TextProperty="DisplayName"/>
+                </RadzenTree>
+            </div>
+        </RadzenTabsItem>
+        <RadzenTabsItem Text="Insert List">
+            <div>
+                <h3>Insert New List</h3>
+                <input @bind-value="listName"/>
+                <button @onclick="AddList">Add List</button>
+            </div>
+        </RadzenTabsItem>
+    </Tabs>
+</RadzenTabs>
 
 @code {
     User? user;
@@ -71,6 +67,7 @@ else
     string listName = "";
     IEnumerable<Todo> todos;
     IEnumerable<TodoTaskList> taskLists;
+    int selectedIndex = 0;
 
     protected override async Task OnInitializedAsync()
     {
@@ -84,9 +81,14 @@ else
         }
     }
 
-    void OnChange(TreeEventArgs args)
+    void OnTreeChange(TreeEventArgs args)
     {
         Log($"Change - Item Text: {args.Text}");
+    }
+
+    void OnTabsChange(int index)
+    {
+        Log($"Tab with index {index} was selected.");
     }
     
     async Task OnExpand(TreeExpandEventArgs args)
@@ -110,29 +112,11 @@ else
     
     async Task LoadTasks()
     {
-        var todoTask = new TodoTask
-        {
-            Title = "A new task",
-            LinkedResources = new TodoTaskLinkedResourcesCollectionPage()
-            {
-                new LinkedResource
-                {
-                    WebUrl = "http://microsoft.com",
-                    ApplicationName = "Microsoft",
-                    DisplayName = "Microsoft"
-                }
-            }
-        };
+        var todoTaskLists = await GraphServiceClient.Me.Todo.Lists.Request().GetAsync();
 
-        //await GraphServiceClient.Me.Todo.Lists["{todoTaskList-id}"].Tasks
-         //   .Request()
-        //    .AddAsync(todoTask);
+        listCount = todoTaskLists.Count;
 
-        var taco = await GraphServiceClient.Me.Todo.Lists.Request().GetAsync();
-
-        listCount = taco.Count;
-
-        foreach (var list in taco)
+        foreach (var list in todoTaskLists)
         {
             if (list != null)
             {

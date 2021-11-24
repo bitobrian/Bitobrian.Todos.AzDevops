@@ -9,7 +9,11 @@
 
 <p>This component demonstrates fetching data from a service.</p>
 
-<button @onclick="AddNewExampleTask">Load List of TodoLists</button>
+<button @onclick="LoadTasks">Load List of TodoLists</button>
+<h3>Load nodes on demand</h3>
+<RadzenTree Change=@OnChange Data=@listOfLists Expand=@OnExpand Style="width: 100%; height: 300px">
+    <RadzenTreeLevel TextProperty="DisplayName"/>
+</RadzenTree>
 
 <input @bind-value="listName"/>
 @listName
@@ -64,9 +68,10 @@ else
     User? user;
     int listCount = 0;
     List<TodoTaskList> listOfLists = new List<TodoTaskList>();
-
     string listName = "";
-    
+    IEnumerable<Todo> todos;
+    IEnumerable<TodoTaskList> taskLists;
+
     protected override async Task OnInitializedAsync()
     {
         try
@@ -79,7 +84,31 @@ else
         }
     }
 
-    async Task AddNewExampleTask()
+    void OnChange(TreeEventArgs args)
+    {
+        Log($"Change - Item Text: {args.Text}");
+    }
+    
+    async Task OnExpand(TreeExpandEventArgs args)
+    {
+        var todoTaskList = args.Value as TodoTaskList;
+
+        try
+        {
+            var taskList = await GraphServiceClient.Me.Todo.Lists[$"{todoTaskList.Id}"].Tasks.Request().GetAsync();
+
+            List<TodoTask> childrenData = taskList.Where(task => task != null).ToList();
+
+            args.Children.Data = childrenData;
+            args.Children.TextProperty = "Title";
+        }
+        catch (Exception ex)
+        {
+            Log($"SOMETHING DIDNT WORK MATE: {ex.Message}");
+        }
+    }
+    
+    async Task LoadTasks()
     {
         var todoTask = new TodoTask
         {
@@ -115,5 +144,10 @@ else
     async Task AddList()
     {
         await GraphServiceClient.Me.Todo.Lists.Request().AddAsync(new TodoTaskList() {DisplayName = listName});
+    }
+
+    void Log(string data)
+    {
+        Console.WriteLine(data);
     }
 }
